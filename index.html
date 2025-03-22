@@ -26,7 +26,7 @@
         label {
             font-size: 1.2em;
         }
-        select, input[type="text"], input[type="number"] {
+        select, input[type="text"], input[type="tel"] {
             width: 100%;
             padding: 12px;
             font-size: 1.2em;
@@ -145,10 +145,13 @@
     document.addEventListener("DOMContentLoaded", function() {
         const amountInput = document.getElementById("amount");
 
-        amountInput.addEventListener("input", function() {
+        amountInput.addEventListener("input", function(e) {
+            let cursorPos = amountInput.selectionStart;
             let val = amountInput.value.replace(/,/g, '');
             if (!isNaN(val) && val !== "") {
-                amountInput.value = Number(val).toLocaleString();
+                let formatted = Number(val).toLocaleString();
+                amountInput.value = formatted;
+                // 커서 위치 조정은 생략
             }
         });
 
@@ -187,7 +190,7 @@
         </select>
 
         <label for="amount">금액 입력:</label>
-        <input type="number" id="amount" inputmode="numeric" pattern="[0-9]*" min="0" step="0.01">
+        <input type="tel" id="amount" inputmode="numeric" pattern="[0-9]*" min="0">
 
         <button onclick="getExchangeRate()">환율 조회</button>
         <div id="result"></div>
