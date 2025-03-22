@@ -18,10 +18,32 @@
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-            width: 350px;
+            width: 400px;
         }
         h2 {
             text-align: center;
+        }
+        label {
+            font-size: 1.1em;
+        }
+        select, input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 1.1em;
+            margin-top: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            font-size: 1.1em;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
         }
         .exchange-card {
             display: flex;
@@ -49,18 +71,12 @@
     </style>
 <script>
     async function getExchangeRate() {
-        document.getElementById("amount").addEventListener("keypress", function(event) {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                getExchangeRate();
-            }
-        });
         const baseCurrency = document.getElementById("baseCurrency").value;
-        const amount = parseFloat(document.getElementById("amount").value) || 1;
+        const amountInput = document.getElementById("amount");
+        const rawValue = amountInput.value.replace(/,/g, '');
+        const amount = parseFloat(rawValue) || 1;
         const targetCurrencies = ["KRW", "USD", "CNH", "JPY", "EGP", "THB"];
-        // const url = `http://localhost:3000/exchange-rate`;  ❌ 기존 코드
-		const url = `https://seastorys2.synology.me/exchange-rate`; // ✅ 이렇게 수정
-
+        const url = `https://seastorys2.synology.me/exchange-rate`;
 
         try {
             const response = await fetch(url);
@@ -71,11 +87,8 @@
                 return;
             }
 
-            console.log("API 응답 데이터:", data); // 데이터 구조 확인용
-
             let resultHTML = "";
 
-            // 기준 통화의 환율 데이터 가져오기
             let baseCurrencyData = data.find(item => item.cur_unit === baseCurrency);
             if (!baseCurrencyData) {
                 if (baseCurrency === "CNY") baseCurrencyData = data.find(item => item.cur_unit === "CNH");
@@ -90,9 +103,9 @@
 
             targetCurrencies.forEach(currency => {
                 let searchCurrency = currency;
-                if (currency === "CNY") searchCurrency = "CNH"; // CNY가 CNH로 제공될 경우 대응
-                if (currency === "JPY") searchCurrency = "JPY(100)"; // JPY가 JPY(100)으로 제공될 경우 대응
-                
+                if (currency === "CNY") searchCurrency = "CNH";
+                if (currency === "JPY") searchCurrency = "JPY(100)";
+
                 const currencyData = data.find(item => item.cur_unit === searchCurrency);
                 if (!currencyData) {
                     resultHTML += `<div class='exchange-card'><span class='currency'>${currency}</span> <span class='amount'>N/A</span></div>`;
@@ -100,17 +113,14 @@
                 }
 
                 let targetRate = parseFloat(currencyData.deal_bas_r.replace(/,/g, ''));
-                if (currency === "JPY") targetRate /= 100; // JPY(100) 기준을 JPY(1) 기준으로 변환
+                if (currency === "JPY") targetRate /= 100;
 
                 let convertedAmount;
                 if (baseCurrency === "KRW") {
-                    // 기준 통화가 KRW일 경우: KRW → 대상 통화 변환
                     convertedAmount = (amount / targetRate).toFixed(2);
                 } else if (currency === "KRW") {
-                    // 대상 통화가 KRW일 경우: 기준 통화 → KRW 변환
                     convertedAmount = (amount * baseRate).toFixed(2);
                 } else {
-                    // 그 외 (예: USD → CNY 변환): 기준 통화를 KRW로 변환한 후 대상 통화로 변환
                     const amountInKRW = amount * baseRate;
                     convertedAmount = (amountInKRW / targetRate).toFixed(2);
                 }
@@ -122,34 +132,44 @@
 
             document.getElementById("result").innerHTML = resultHTML;
 
-            // 📅 기준 시간 표시 (서버에서 받은 최신 환율 데이터 기준)
-            const updateTimeStr = data[0]?.date || new Date().toISOString(); // API 응답 구조에 따라 수정
-            const updateTime = new Date(updateTimeStr);
-            const formattedTime = updateTime.toLocaleString("ko-KR", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: false
-            });
-
-            document.getElementById("timeInfo").innerText = `📅 최신 환율 데이터 기준
-(날짜: ${updateTimeStr})`; 
-
+            const updateTimeStr = data[0]?.date || new Date().toISOString();
+            document.getElementById("timeInfo").innerText = `📅 최신 환율 데이터 기준\n(날짜: ${updateTimeStr})`;
         } catch (error) {
             console.error("API 요청 오류:", error);
             document.getElementById("result").innerText = "데이터를 불러오는 중 오류 발생.";
         }
     }
-document.addEventListener("DOMContentLoaded", function() {
-    document.getElementById("amount").addEventListener("keypress", function(event) {
-        if (event.key === "Enter") {
-            event.preventDefault();
-            getExchangeRate();
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const amountInput = document.getElementById("amount");
+
+        amountInput.addEventListener("input", function() {
+            let val = amountInput.value.replace(/,/g, '');
+            if (!isNaN(val) && val !== "") {
+                amountInput.value = Number(val).toLocaleString();
+            }
+        });
+
+        amountInput.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                getExchangeRate();
+            }
+        });
+    });
+
+    // 🔐 소스 보기/우클릭/F12 방지 스크립트 추가
+    document.addEventListener("contextmenu", e => e.preventDefault());
+    document.addEventListener("selectstart", e => e.preventDefault());
+    document.addEventListener("keydown", e => {
+        if (
+            e.key === "F12" ||
+            (e.ctrlKey && e.shiftKey && ["I", "i", "J", "j", "C", "c"].includes(e.key)) ||
+            (e.ctrlKey && e.key.toLowerCase() === "u")
+        ) {
+            e.preventDefault();
         }
     });
-});
 </script>
 </head>
 <body>
@@ -166,7 +186,7 @@ document.addEventListener("DOMContentLoaded", function() {
         </select>
         <br><br>
         <label for="amount">금액 입력:</label>
-        <input type="number" id="amount" value="" min="0" step="0.01">
+        <input type="text" id="amount" value="" min="0" step="0.01">
         <br><br>
         <button onclick="getExchangeRate()">환율 조회</button>
         <div id="result"></div>
