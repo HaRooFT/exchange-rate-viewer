@@ -154,9 +154,7 @@
     function copyToClipboard(elementId) {
         const el = document.getElementById(elementId);
         const text = el.innerText.replace(/[^0-9.]/g, '');
-        navigator.clipboard.writeText(text)
-            .then(() => alert(`복사됨: ${text}`))
-            .catch(err => alert("복사 실패: " + err));
+        navigator.clipboard.writeText(text);
     }
 
     document.addEventListener("DOMContentLoaded", function() {
