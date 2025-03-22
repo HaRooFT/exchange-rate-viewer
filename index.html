@@ -35,9 +35,8 @@
             box-sizing: border-box;
         }
         button {
-            width: 100%;
-            padding: 12px;
-            font-size: 1.2em;
+            padding: 8px 12px;
+            font-size: 1em;
             background-color: #007BFF;
             color: white;
             border: none;
@@ -63,6 +62,11 @@
         .amount {
             font-size: 1.2em;
             font-weight: bold;
+        }
+        .copy-btn {
+            margin-left: 10px;
+            font-size: 0.9em;
+            padding: 4px 8px;
         }
         .time-info {
             text-align: center;
@@ -103,7 +107,7 @@
 
             const baseRate = parseFloat(baseCurrencyData.deal_bas_r.replace(/,/g, ''));
 
-            targetCurrencies.forEach(currency => {
+            targetCurrencies.forEach((currency, index) => {
                 let searchCurrency = currency;
                 if (currency === "CNY") searchCurrency = "CNH";
                 if (currency === "JPY") searchCurrency = "JPY(100)";
@@ -128,8 +132,13 @@
                 }
 
                 convertedAmount = Number(convertedAmount).toLocaleString();
-                let displayAmount = currency === "KRW" ? `${convertedAmount} 원` : `${convertedAmount} ${currency}`;
-                resultHTML += `<div class='exchange-card'><span class='currency'>${currency}</span> <span class='amount'>${displayAmount}</span></div>`;
+                const displayAmount = currency === "KRW" ? `${convertedAmount} 원` : `${convertedAmount} ${currency}`;
+
+                resultHTML += `<div class='exchange-card'>
+                    <span class='currency'>${currency}</span>
+                    <span class='amount' id="amount-${index}">${displayAmount}</span>
+                    <button class="copy-btn" onclick="copyToClipboard('amount-${index}')">복사</button>
+                </div>`;
             });
 
             document.getElementById("result").innerHTML = resultHTML;
@@ -142,16 +151,22 @@
         }
     }
 
+    function copyToClipboard(elementId) {
+        const el = document.getElementById(elementId);
+        const text = el.innerText.replace(/[^0-9.]/g, '');
+        navigator.clipboard.writeText(text)
+            .then(() => alert(`복사됨: ${text}`))
+            .catch(err => alert("복사 실패: " + err));
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
         const amountInput = document.getElementById("amount");
 
         amountInput.addEventListener("input", function(e) {
-            let cursorPos = amountInput.selectionStart;
             let val = amountInput.value.replace(/,/g, '');
             if (!isNaN(val) && val !== "") {
                 let formatted = Number(val).toLocaleString();
                 amountInput.value = formatted;
-                // 커서 위치 조정은 생략
             }
         });
 
