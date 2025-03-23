@@ -167,6 +167,7 @@
 
         baseCurrencySelect.addEventListener("change", () => {
             amountInput.value = "";
+            amountInput.focus();
         });
 
         amountInput.addEventListener("beforeinput", function(event) {
@@ -196,6 +197,9 @@
             }
             amountInput.value = val;
         });
+
+        // ✅ 초기 로딩 시 금액 입력란 자동 포커스
+        amountInput.focus();
     });
 
     document.addEventListener("contextmenu", e => e.preventDefault());
