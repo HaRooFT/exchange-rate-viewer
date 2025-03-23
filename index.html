@@ -166,21 +166,13 @@
         }
 
         baseCurrencySelect.addEventListener("change", () => {
-            amountInput.value = ""; // 통화 바꾸면 입력 초기화
+            amountInput.value = "";
         });
 
-        amountInput.addEventListener("input", function(e) {
-            const cursor = amountInput.selectionStart;
-            let val = amountInput.value.replace(/,/g, '');
-            if (isDecimalAllowed()) {
-                val = val.replace(/[^\d.]/g, '');
-            } else {
-                val = val.replace(/\D/g, '');
-            }
-            if (!isNaN(val) && val !== "") {
-                let formatted = Number(val).toLocaleString('en-US', { maximumFractionDigits: 2 });
-                amountInput.value = formatted;
-                amountInput.setSelectionRange(cursor, cursor);
+        amountInput.addEventListener("beforeinput", function(event) {
+            const inputChar = event.data;
+            if (inputChar === "." && !isDecimalAllowed()) {
+                event.preventDefault();
             }
         });
 
@@ -193,6 +185,16 @@
             if (key === "." && !isDecimalAllowed()) {
                 event.preventDefault();
             }
+        });
+
+        amountInput.addEventListener("input", function(e) {
+            let val = amountInput.value.replace(/,/g, "");
+            if (!isDecimalAllowed()) {
+                val = val.replace(/\D/g, "");
+            } else {
+                val = val.replace(/[^\d.]/g, "");
+            }
+            amountInput.value = val;
         });
     });
 
