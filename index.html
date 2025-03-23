@@ -169,6 +169,11 @@
         amountInput.focus();
     }
 
+    function blurInputField() {
+        const amountInput = document.getElementById("amount");
+        amountInput.blur();
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
         const amountInput = document.getElementById("amount");
         const baseCurrencySelect = document.getElementById("baseCurrency");
@@ -194,6 +199,7 @@
             if (key === "Enter") {
                 event.preventDefault();
                 getExchangeRate();
+                blurInputField(); // ✅ 입력 완료 후 키보드 닫기
             }
             if (key === "." && !isDecimalAllowed()) {
                 event.preventDefault();
