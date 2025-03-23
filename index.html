@@ -26,7 +26,7 @@
         label {
             font-size: 1.2em;
         }
-        select, input[type="text"], input[type="tel"] {
+        select, input[type="text"], input[type="tel"], input[type="number"] {
             width: 100%;
             padding: 12px;
             font-size: 1.2em;
@@ -163,13 +163,26 @@
         amountInput.addEventListener("input", function(e) {
             let val = amountInput.value.replace(/,/g, '');
             if (!isNaN(val) && val !== "") {
-                let formatted = Number(val).toLocaleString();
+                let formatted = Number(val).toLocaleString('en-US', { maximumFractionDigits: 2 });
                 amountInput.value = formatted;
             }
         });
 
         amountInput.addEventListener("keypress", function(event) {
-            if (event.key === "Enter") {
+            const baseCurrency = document.getElementById("baseCurrency").value;
+            const key = event.key;
+
+            // 허용할 문자: 숫자, 백스페이스, 소숫점 (KRW 제외)
+            if (!/[0-9.]/.test(key) && key !== "Backspace") {
+                event.preventDefault();
+            }
+
+            // KRW일 경우 소숫점 입력 방지
+            if (baseCurrency === "KRW" && key === ".") {
+                event.preventDefault();
+            }
+
+            if (key === "Enter") {
                 event.preventDefault();
                 getExchangeRate();
             }
@@ -203,7 +216,7 @@
         </select>
 
         <label for="amount">금액 입력:</label>
-        <input type="tel" id="amount" inputmode="numeric" pattern="[0-9]*" min="0">
+        <input type="text" id="amount" inputmode="decimal" pattern="[0-9.]*" min="0">
 
         <button onclick="getExchangeRate()">환율 조회</button>
         <div id="result"></div>
