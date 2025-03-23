@@ -159,6 +159,11 @@
 
     document.addEventListener("DOMContentLoaded", function() {
         const amountInput = document.getElementById("amount");
+        const baseCurrencySelect = document.getElementById("baseCurrency");
+
+        function isDecimalAllowed() {
+            return baseCurrencySelect.value !== "KRW";
+        }
 
         amountInput.addEventListener("input", function(e) {
             let val = amountInput.value.replace(/,/g, '');
@@ -168,21 +173,19 @@
             }
         });
 
-        amountInput.addEventListener("keypress", function(event) {
-            const baseCurrency = document.getElementById("baseCurrency").value;
-            const key = event.key;
-
-            // 허용할 문자: 숫자, 백스페이스, 소숫점 (KRW 제외)
-            if (!/[0-9.]/.test(key) && key !== "Backspace") {
+        amountInput.addEventListener("beforeinput", function(event) {
+            const inputChar = event.data;
+            if (!inputChar) return;
+            if (!/[0-9.]/.test(inputChar)) {
                 event.preventDefault();
             }
-
-            // KRW일 경우 소숫점 입력 방지
-            if (baseCurrency === "KRW" && key === ".") {
+            if (inputChar === "." && !isDecimalAllowed()) {
                 event.preventDefault();
             }
+        });
 
-            if (key === "Enter") {
+        amountInput.addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
                 event.preventDefault();
                 getExchangeRate();
             }
