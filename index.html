@@ -34,6 +34,12 @@
             margin-bottom: 15px;
             box-sizing: border-box;
         }
+        .button-group {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
         button {
             padding: 8px 12px;
             font-size: 1em;
@@ -157,6 +163,12 @@
         navigator.clipboard.writeText(text);
     }
 
+    function clearAmount() {
+        const amountInput = document.getElementById("amount");
+        amountInput.value = "";
+        amountInput.focus();
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
         const amountInput = document.getElementById("amount");
         const baseCurrencySelect = document.getElementById("baseCurrency");
@@ -198,7 +210,6 @@
             amountInput.value = val;
         });
 
-        // ✅ 초기 로딩 시 금액 입력란 자동 포커스
         amountInput.focus();
     });
 
@@ -231,7 +242,11 @@
         <label for="amount">금액 입력:</label>
         <input type="text" id="amount" inputmode="decimal" placeholder="금액 입력">
 
-        <button onclick="getExchangeRate()">환율 조회</button>
+        <div class="button-group">
+            <button onclick="clearAmount()">지우기</button>
+            <button onclick="getExchangeRate()">환율 조회</button>
+        </div>
+
         <div id="result"></div>
         <p id="timeInfo" class="time-info"></p>
     </div>
