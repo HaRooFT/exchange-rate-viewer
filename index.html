@@ -82,81 +82,83 @@
         }
     </style>
 <script>
-    async function getExchangeRate() {
-        const baseCurrency = document.getElementById("baseCurrency").value;
-        const amountInput = document.getElementById("amount");
-        const rawValue = amountInput.value.replace(/,/g, '');
-        const amount = parseFloat(rawValue) || 1;
-        const targetCurrencies = ["KRW", "USD", "CNH", "JPY", "EGP", "THB"];
-        const url = `https://seastorys2.synology.me/exchange-rate`;
+async function getExchangeRate() {
+    const baseCurrency = document.getElementById("baseCurrency").value;
+    const amountInput = document.getElementById("amount");
+    const rawValue = amountInput.value.replace(/,/g, '');
+    let amount = parseFloat(rawValue) || 1;
+    const targetCurrencies = ["KRW", "USD", "CNH", "JPY", "EGP", "THB"];
+    const url = `https://seastorys2.synology.me/exchange-rate`;
 
-        try {
-            const response = await fetch(url);
-            const data = await response.json();
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
 
-            if (!Array.isArray(data) || data.length === 0) {
-                document.getElementById("result").innerText = "환율 정보를 가져올 수 없습니다.";
-                return;
-            }
-
-            let resultHTML = "";
-
-            let baseCurrencyData = data.find(item => item.cur_unit === baseCurrency);
-            if (!baseCurrencyData) {
-                if (baseCurrency === "CNY") baseCurrencyData = data.find(item => item.cur_unit === "CNH");
-                if (baseCurrency === "JPY") baseCurrencyData = data.find(item => item.cur_unit === "JPY(100)");
-            }
-            if (!baseCurrencyData) {
-                document.getElementById("result").innerText = "기준 통화의 환율 정보를 찾을 수 없습니다.";
-                return;
-            }
-
-            const baseRate = parseFloat(baseCurrencyData.deal_bas_r.replace(/,/g, ''));
-
-            targetCurrencies.forEach((currency, index) => {
-                let searchCurrency = currency;
-                if (currency === "CNY") searchCurrency = "CNH";
-                if (currency === "JPY") searchCurrency = "JPY(100)";
-
-                const currencyData = data.find(item => item.cur_unit === searchCurrency);
-                if (!currencyData) {
-                    resultHTML += `<div class='exchange-card'><span class='currency'>${currency}</span> <span class='amount'>N/A</span></div>`;
-                    return;
-                }
-
-                let targetRate = parseFloat(currencyData.deal_bas_r.replace(/,/g, ''));
-                if (currency === "JPY") targetRate /= 100;
-
-                let convertedAmount;
-                if (baseCurrency === "KRW") {
-                    convertedAmount = (amount / targetRate).toFixed(2);
-                } else if (currency === "KRW") {
-                    convertedAmount = (amount * baseRate).toFixed(2);
-                } else {
-                    const amountInKRW = amount * baseRate;
-                    convertedAmount = (amountInKRW / targetRate).toFixed(2);
-                }
-
-                convertedAmount = Number(convertedAmount).toLocaleString();
-                const displayAmount = currency === "KRW" ? `${convertedAmount} 원` : `${convertedAmount} ${currency}`;
-
-                resultHTML += `<div class='exchange-card'>
-                    <span class='currency'>${currency}</span>
-                    <span class='amount' id="amount-${index}">${displayAmount}</span>
-                    <button class="copy-btn" onclick="copyToClipboard('amount-${index}')">복사</button>
-                </div>`;
-            });
-
-            document.getElementById("result").innerHTML = resultHTML;
-
-            const updateTimeStr = data[0]?.date || new Date().toISOString();
-            document.getElementById("timeInfo").innerText = `📅 최신 환율 데이터 기준\n(날짜: ${updateTimeStr})`;
-        } catch (error) {
-            console.error("API 요청 오류:", error);
-            document.getElementById("result").innerText = "데이터를 불러오는 중 오류 발생.";
+        if (!Array.isArray(data) || data.length === 0) {
+            document.getElementById("result").innerText = "환율 정보를 가져올 수 없습니다.";
+            return;
         }
-    }
 
+        let resultHTML = "";
+
+        let baseCurrencyData = data.find(item => item.cur_unit === baseCurrency);
+        if (!baseCurrencyData) {
+            if (baseCurrency === "CNY") baseCurrencyData = data.find(item => item.cur_unit === "CNH");
+            if (baseCurrency === "JPY") baseCurrencyData = data.find(item => item.cur_unit === "JPY(100)");
+        }
+        if (!baseCurrencyData) {
+            document.getElementById("result").innerText = "기준 통화의 환율 정보를 찾을 수 없습니다.";
+            return;
+        }
+
+        let baseRate = parseFloat(baseCurrencyData.deal_bas_r.replace(/,/g, ''));
+        if (baseCurrency === "JPY") {
+            baseRate = baseRate / 100; // ✅ 일본 기준 통화일 때 100으로 나눔
+        }
+
+        targetCurrencies.forEach((currency, index) => {
+            let searchCurrency = currency;
+            if (currency === "CNY") searchCurrency = "CNH";
+            if (currency === "JPY") searchCurrency = "JPY(100)";
+
+            const currencyData = data.find(item => item.cur_unit === searchCurrency);
+            if (!currencyData) {
+                resultHTML += `<div class='exchange-card'><span class='currency'>${currency}</span> <span class='amount'>N/A</span></div>`;
+                return;
+            }
+
+            let targetRate = parseFloat(currencyData.deal_bas_r.replace(/,/g, ''));
+            if (currency === "JPY") targetRate /= 100;
+
+            let convertedAmount;
+            if (baseCurrency === "KRW") {
+                convertedAmount = (amount / targetRate).toFixed(2);
+            } else if (currency === "KRW") {
+                convertedAmount = (amount * baseRate).toFixed(2);
+            } else {
+                const amountInKRW = amount * baseRate;
+                convertedAmount = (amountInKRW / targetRate).toFixed(2);
+            }
+
+            convertedAmount = Number(convertedAmount).toLocaleString();
+            const displayAmount = currency === "KRW" ? `${convertedAmount} 원` : `${convertedAmount} ${currency}`;
+
+            resultHTML += `<div class='exchange-card'>
+                <span class='currency'>${currency}</span>
+                <span class='amount' id="amount-${index}">${displayAmount}</span>
+                <button class="copy-btn" onclick="copyToClipboard('amount-${index}')">복사</button>
+            </div>`;
+        });
+
+        document.getElementById("result").innerHTML = resultHTML;
+
+        const updateTimeStr = data[0]?.date || new Date().toISOString();
+        document.getElementById("timeInfo").innerText = `📅 최신 환율 데이터 기준\n(날짜: ${updateTimeStr})`;
+    } catch (error) {
+        console.error("API 요청 오류:", error);
+        document.getElementById("result").innerText = "데이터를 불러오는 중 오류 발생.";
+    }
+}
     function copyToClipboard(elementId) {
         const el = document.getElementById(elementId);
         const text = el.innerText.replace(/[^0-9.]/g, '');
