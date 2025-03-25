@@ -1,262 +1,348 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>환율 변환기</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f4f4f4;
-        }
-        .exchange-container {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-            width: 400px;
-        }
-        h2 {
-            text-align: center;
-        }
-        label {
-            font-size: 1.2em;
-        }
-        select, input[type="text"], input[type="tel"], input[type="number"] {
-            width: 100%;
-            padding: 12px;
-            font-size: 1.2em;
-            margin-top: 5px;
-            margin-bottom: 15px;
-            box-sizing: border-box;
-        }
-        .button-group {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        button {
-            padding: 8px 12px;
-            font-size: 1em;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .exchange-card {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
-        }
-        .exchange-card:last-child {
-            border-bottom: none;
-        }
-        .currency {
-            font-weight: bold;
-        }
-        .amount {
-            font-size: 1.2em;
-            font-weight: bold;
-        }
-        .copy-btn {
-            margin-left: 10px;
-            font-size: 0.9em;
-            padding: 4px 8px;
-        }
-        .time-info {
-            text-align: center;
-            font-size: 0.9em;
-            color: gray;
-            margin-top: 10px;
-        }
-    </style>
-<script>
-async function getExchangeRate() {
-    const baseCurrency = document.getElementById("baseCurrency").value;
-    const amountInput = document.getElementById("amount");
-    const rawValue = amountInput.value.replace(/,/g, '');
-    let amount = parseFloat(rawValue) || 1;
-    const targetCurrencies = ["KRW", "USD", "CNH", "JPY", "EGP", "THB"];
-    const url = `https://seastorys2.synology.me/exchange-rate`;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>환율 변환기</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+    .exchange-container {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+      width: 400px;
+    }
+    h2 {
+      text-align: center;
+      margin-top: 0;
+    }
+    label {
+      font-size: 1.2em;
+    }
+    select,
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      font-size: 1.2em;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      box-sizing: border-box;
+    }
+    .button-group {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    button {
+      padding: 8px 12px;
+      font-size: 1em;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .exchange-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+    .exchange-card:last-child {
+      border-bottom: none;
+    }
+    .currency {
+      font-weight: bold;
+    }
+    .amount {
+      font-size: 1.2em;
+      font-weight: bold;
+    }
+    .copy-btn {
+      margin-left: 10px;
+      font-size: 0.9em;
+      padding: 4px 8px;
+    }
+    .time-info {
+      text-align: center;
+      font-size: 0.9em;
+      color: gray;
+      margin-top: 10px;
+    }
 
-    try {
+    /* =============== 로고 관련 =============== */
+    /* 처음엔 상단 로고만 보이고, 하단 로고는 숨김 */
+    #topLogoWrapper {
+      display: block; 
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    #bottomLogoWrapper {
+      display: none; 
+      text-align: center;
+      margin-top: 10px;
+    }
+    /* 로고 이미지 크기나 스타일은 원하는 대로 조절 */
+    /* 상단 로고 */
+#topLogo {
+  max-width: 250px; /* 원하는 크기로 수정 */
+  height: auto;
+  /* 필요하다면 margin, padding, border 등 자유롭게 추가 */
+}
+
+/* 하단 로고 */
+#bottomLogo {
+  max-width: 100px; /* 원하는 크기로 수정 */
+  height: auto;
+  /* 필요하다면 margin, padding, border 등 자유롭게 추가 */
+}
+
+  </style>
+
+  <script>
+    async function getExchangeRate() {
+      const baseCurrency = document.getElementById("baseCurrency").value;
+      const amountInput = document.getElementById("amount");
+      const rawValue = amountInput.value.replace(/,/g, "");
+      let amount = parseFloat(rawValue) || 1;
+
+      const targetCurrencies = ["KRW", "USD", "CNH", "JPY", "EGP", "THB"];
+      const url = `https://seastorys2.synology.me/exchange-rate`;
+
+      try {
         const response = await fetch(url);
         const data = await response.json();
 
         if (!Array.isArray(data) || data.length === 0) {
-            document.getElementById("result").innerText = "환율 정보를 가져올 수 없습니다.";
-            return;
+          document.getElementById("result").innerText =
+            "환율 정보를 가져올 수 없습니다.";
+          return;
         }
 
         let resultHTML = "";
 
-        let baseCurrencyData = data.find(item => item.cur_unit === baseCurrency);
+        let baseCurrencyData = data.find((item) => item.cur_unit === baseCurrency);
         if (!baseCurrencyData) {
-            if (baseCurrency === "CNY") baseCurrencyData = data.find(item => item.cur_unit === "CNH");
-            if (baseCurrency === "JPY") baseCurrencyData = data.find(item => item.cur_unit === "JPY(100)");
+          if (baseCurrency === "CNY")
+            baseCurrencyData = data.find((item) => item.cur_unit === "CNH");
+          if (baseCurrency === "JPY")
+            baseCurrencyData = data.find((item) => item.cur_unit === "JPY(100)");
         }
         if (!baseCurrencyData) {
-            document.getElementById("result").innerText = "기준 통화의 환율 정보를 찾을 수 없습니다.";
-            return;
+          document.getElementById("result").innerText =
+            "기준 통화의 환율 정보를 찾을 수 없습니다.";
+          return;
         }
 
-        let baseRate = parseFloat(baseCurrencyData.deal_bas_r.replace(/,/g, ''));
+        let baseRate = parseFloat(baseCurrencyData.deal_bas_r.replace(/,/g, ""));
+        // 일본(JPY) 기준 통화는 100단위 -> 100으로 나누어 적용
         if (baseCurrency === "JPY") {
-            baseRate = baseRate / 100; // ✅ 일본 기준 통화일 때 100으로 나눔
+          baseRate = baseRate / 100;
         }
 
+        // 환율 계산
         targetCurrencies.forEach((currency, index) => {
-            let searchCurrency = currency;
-            if (currency === "CNY") searchCurrency = "CNH";
-            if (currency === "JPY") searchCurrency = "JPY(100)";
+          let searchCurrency = currency;
+          if (currency === "CNY") searchCurrency = "CNH";
+          if (currency === "JPY") searchCurrency = "JPY(100)";
 
-            const currencyData = data.find(item => item.cur_unit === searchCurrency);
-            if (!currencyData) {
-                resultHTML += `<div class='exchange-card'><span class='currency'>${currency}</span> <span class='amount'>N/A</span></div>`;
-                return;
-            }
-
-            let targetRate = parseFloat(currencyData.deal_bas_r.replace(/,/g, ''));
-            if (currency === "JPY") targetRate /= 100;
-
-            let convertedAmount;
-            if (baseCurrency === "KRW") {
-                convertedAmount = (amount / targetRate).toFixed(2);
-            } else if (currency === "KRW") {
-                convertedAmount = (amount * baseRate).toFixed(2);
-            } else {
-                const amountInKRW = amount * baseRate;
-                convertedAmount = (amountInKRW / targetRate).toFixed(2);
-            }
-
-            convertedAmount = Number(convertedAmount).toLocaleString();
-            const displayAmount = currency === "KRW" ? `${convertedAmount} 원` : `${convertedAmount} ${currency}`;
-
+          const currencyData = data.find((item) => item.cur_unit === searchCurrency);
+          if (!currencyData) {
             resultHTML += `<div class='exchange-card'>
-                <span class='currency'>${currency}</span>
-                <span class='amount' id="amount-${index}">${displayAmount}</span>
-                <button class="copy-btn" onclick="copyToClipboard('amount-${index}')">복사</button>
+              <span class='currency'>${currency}</span> 
+              <span class='amount'>N/A</span>
+            </div>`;
+            return;
+          }
+
+          let targetRate = parseFloat(currencyData.deal_bas_r.replace(/,/g, ""));
+          if (currency === "JPY") targetRate /= 100;
+
+          let convertedAmount;
+          if (baseCurrency === "KRW") {
+            convertedAmount = (amount / targetRate).toFixed(2);
+          } else if (currency === "KRW") {
+            convertedAmount = (amount * baseRate).toFixed(2);
+          } else {
+            const amountInKRW = amount * baseRate;
+            convertedAmount = (amountInKRW / targetRate).toFixed(2);
+          }
+
+          convertedAmount = Number(convertedAmount).toLocaleString();
+          const displayAmount =
+            currency === "KRW"
+              ? `${convertedAmount} 원`
+              : `${convertedAmount} ${currency}`;
+
+          resultHTML += `<div class='exchange-card'>
+              <span class='currency'>${currency}</span>
+              <span class='amount' id="amount-${index}">${displayAmount}</span>
+              <button class="copy-btn" onclick="copyToClipboard('amount-${index}')">복사</button>
             </div>`;
         });
 
         document.getElementById("result").innerHTML = resultHTML;
 
         const updateTimeStr = data[0]?.date || new Date().toISOString();
-        document.getElementById("timeInfo").innerText = `📅 최신 환율 데이터 기준\n(날짜: ${updateTimeStr})`;
-    } catch (error) {
+        document.getElementById("timeInfo").innerText = 
+          `📅 최신 환율 데이터 기준\n(날짜: ${updateTimeStr})`;
+
+        // ★★★ 조회 성공 시: 상단 로고 숨기고, 하단 로고 보이기 ★★★
+        document.getElementById("topLogoWrapper").style.display = "none";
+        document.getElementById("bottomLogoWrapper").style.display = "block";
+      } catch (error) {
         console.error("API 요청 오류:", error);
-        document.getElementById("result").innerText = "데이터를 불러오는 중 오류 발생.";
+        document.getElementById("result").innerText =
+          "데이터를 불러오는 중 오류 발생.";
+        // 에러 시에는 상단 로고 그대로, 하단 로고도 그대로 숨김 상태 유지
+      }
     }
-}
+
     function copyToClipboard(elementId) {
-        const el = document.getElementById(elementId);
-        const text = el.innerText.replace(/[^0-9.]/g, '');
-        navigator.clipboard.writeText(text);
+      const el = document.getElementById(elementId);
+      const text = el.innerText.replace(/[^0-9.]/g, "");
+      navigator.clipboard.writeText(text);
     }
 
     function clearAmount() {
-        const amountInput = document.getElementById("amount");
-        amountInput.value = "";
-        amountInput.focus();
+      const amountInput = document.getElementById("amount");
+      amountInput.value = "";
+      amountInput.focus();
+
+      // ★★★ 지우기 버튼 시: 상단 로고 다시 보이고, 하단 로고 숨기기 ★★★
+      document.getElementById("topLogoWrapper").style.display = "block";
+      document.getElementById("bottomLogoWrapper").style.display = "none";
+
+      document.getElementById("result").innerHTML = "";
+      document.getElementById("timeInfo").innerText = "";
     }
 
     function blurInputField() {
-        const amountInput = document.getElementById("amount");
-        amountInput.blur();
+      const amountInput = document.getElementById("amount");
+      amountInput.blur();
     }
 
-    document.addEventListener("DOMContentLoaded", function() {
-        const amountInput = document.getElementById("amount");
-        const baseCurrencySelect = document.getElementById("baseCurrency");
+    document.addEventListener("DOMContentLoaded", function () {
+      const amountInput = document.getElementById("amount");
+      const baseCurrencySelect = document.getElementById("baseCurrency");
 
-        function isDecimalAllowed() {
-            return baseCurrencySelect.value !== "KRW";
-        }
+      function isDecimalAllowed() {
+        // KRW(원) 이외의 통화는 소수점 입력 가능
+        return baseCurrencySelect.value !== "KRW";
+      }
 
-        baseCurrencySelect.addEventListener("change", () => {
-            amountInput.value = "";
-            amountInput.focus();
-        });
-
-        amountInput.addEventListener("beforeinput", function(event) {
-            const inputChar = event.data;
-            if (inputChar === "." && !isDecimalAllowed()) {
-                event.preventDefault();
-            }
-        });
-
-        amountInput.addEventListener("keydown", function(event) {
-            const key = event.key;
-            if (key === "Enter") {
-                event.preventDefault();
-                getExchangeRate();
-                blurInputField(); // ✅ 입력 완료 후 키보드 닫기
-            }
-            if (key === "." && !isDecimalAllowed()) {
-                event.preventDefault();
-            }
-        });
-
-        amountInput.addEventListener("input", function(e) {
-            let val = amountInput.value.replace(/,/g, "");
-            if (!isDecimalAllowed()) {
-                val = val.replace(/\D/g, "");
-            } else {
-                val = val.replace(/[^\d.]/g, "");
-            }
-            amountInput.value = val;
-        });
-
+      baseCurrencySelect.addEventListener("change", () => {
+        amountInput.value = "";
         amountInput.focus();
+      });
+
+      amountInput.addEventListener("beforeinput", function (event) {
+        const inputChar = event.data;
+        if (inputChar === "." && !isDecimalAllowed()) {
+          event.preventDefault();
+        }
+      });
+
+      amountInput.addEventListener("keydown", function (event) {
+        const key = event.key;
+        if (key === "Enter") {
+          event.preventDefault();
+          getExchangeRate();
+          blurInputField(); // 입력 완료 후 키보드 닫기
+        }
+        if (key === "." && !isDecimalAllowed()) {
+          event.preventDefault();
+        }
+      });
+
+      amountInput.addEventListener("input", function () {
+        let val = amountInput.value.replace(/,/g, "");
+        if (!isDecimalAllowed()) {
+          val = val.replace(/\D/g, "");
+        } else {
+          val = val.replace(/[^\d.]/g, "");
+        }
+        amountInput.value = val;
+      });
+
+      amountInput.focus();
     });
 
-    document.addEventListener("contextmenu", e => e.preventDefault());
-    document.addEventListener("selectstart", e => e.preventDefault());
-    document.addEventListener("keydown", e => {
-        if (
-            e.key === "F12" ||
-            (e.ctrlKey && e.shiftKey && ["I", "i", "J", "j", "C", "c"].includes(e.key)) ||
-            (e.ctrlKey && e.key.toLowerCase() === "u")
-        ) {
-            e.preventDefault();
-        }
+    // 우클릭, F12, 개발자도구 열기 방지 (디버깅 위해 잠시 주석 가능)
+    document.addEventListener("contextmenu", (e) => e.preventDefault());
+    document.addEventListener("selectstart", (e) => e.preventDefault());
+    document.addEventListener("keydown", (e) => {
+      if (
+        e.key === "F12" ||
+        (e.ctrlKey && e.shiftKey && ["I", "i", "J", "j", "C", "c"].includes(e.key)) ||
+        (e.ctrlKey && e.key.toLowerCase() === "u")
+      ) {
+        e.preventDefault();
+      }
     });
-</script>
+  </script>
 </head>
 <body>
-    <div class="exchange-container">
-        <h2 id="title">환율 변환기</h2>
-        <label for="baseCurrency">기준 통화:</label>
-        <select id="baseCurrency">
-            <option value="KRW">한국(KRW)</option>
-            <option value="USD">미국(USD)</option>
-            <option value="CNH">중국(CNH)</option>
-            <option value="JPY">일본(JPY)</option>
-            <option value="EGP">이집트(EGP)</option>
-            <option value="THB">태국(THB)</option>
-        </select>
+  <div class="exchange-container">
 
-        <label for="amount">금액 입력:</label>
-        <input type="text" id="amount" inputmode="decimal" placeholder="금액 입력">
-
-        <div class="button-group">
-            <button onclick="clearAmount()">지우기</button>
-            <button onclick="getExchangeRate()">환율 조회</button>
-        </div>
-
-        <div id="result"></div>
-        <p id="timeInfo" class="time-info"></p>
+    <!-- 처음에만 보이는 상단 로고 -->
+    <div id="topLogoWrapper">
+      <!-- 원하는 로고 URL/크기로 수정 -->
+      <img
+        id="topLogo"
+        src="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FboSdsB%2FbtsMQn77F7H%2FkkCp2eFn647DAjg3Afie5k%2Fimg.png"
+        alt="상단 로고"
+      />
     </div>
+
+    <h2 id="title">환율 변환기</h2>
+
+    <label for="baseCurrency">기준 통화:</label>
+    <select id="baseCurrency">
+      <option value="KRW">한국(KRW)</option>
+      <option value="USD">미국(USD)</option>
+      <option value="CNH">중국(CNH)</option>
+      <option value="JPY">일본(JPY)</option>
+      <option value="EGP">이집트(EGP)</option>
+      <option value="THB">태국(THB)</option>
+    </select>
+
+    <label for="amount">금액 입력:</label>
+    <input type="text" id="amount" inputmode="decimal" placeholder="금액 입력" />
+
+    <div class="button-group">
+      <button onclick="clearAmount()">지우기</button>
+      <button onclick="getExchangeRate()">환율 조회</button>
+    </div>
+
+    <!-- 조회 결과 영역 -->
+    <div id="result"></div>
+    <p id="timeInfo" class="time-info"></p>
+
+    <!-- 조회 후에만 보이는 하단 로고 -->
+    <div id="bottomLogoWrapper">
+      <!-- 원하는 로고 URL/크기로 수정 -->
+      <img
+        id="bottomLogo"
+        src="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbUbZ7C%2FbtsMPJjN9re%2Flvw7hIiQmwpCYThd9H5YSK%2Fimg.png"
+        alt="하단 로고"
+      />
+    </div>
+  </div>
 </body>
 </html>
